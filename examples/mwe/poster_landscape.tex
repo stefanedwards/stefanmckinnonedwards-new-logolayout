@@ -1,5 +1,6 @@
 \documentclass[landscape,paperwidth=180cm,paperheight=120cm]{baposter}
 \listfiles
+\definecolor{lightblue}{rgb}{0.145,0.6666,1}
 \begin{document}
 \begin{poster}
   {grid=true}
@@ -8,12 +9,30 @@
   {Me and You\ me@example.com} % authors
   { Foo } % University logo
   
-  \headerbox{Foo}{name=contribution,column=0,row=0,span=2}{
-  }
+  \begin{posterbox}[name=contribution,column=0,row=0,span=2]{Foo}
+    Foo foo foo!
+  \end{posterbox}
   
-  \headerbox{Bar}{name=abstract,column=0,below=contribution}{
-  }
+  \begin{posterbox}[name=abstract,column=0,below=contribution]{Bar}
+    Bar bar bar...
+  \end{posterbox}
   
+  \begin{posterbox}[name=second,column=1,row=0.3,height=0.30,textborder=rectangle]{Second}
+    Second box?!
+  \end{posterbox}
+
+  \begin{posterbox}[name=third,column=2,bottomaligned=second,row=0.4,textborder=rectangle]{Third}
+    Bottom aligned box.
+  \end{posterbox}
+
+  \begin{posterbox}[name=fourth,column=2,aligned=abstract]{Fourth}
+    This box is aligned with same top as `Bar'.
+  \end{posterbox}
+
+  \begin{posterbox}[name=fifth,column=3,aligned=abstract,bottomaligned=third,textborder=rectangle]{Fifth}
+    Same top as `Bar', but bottom is aligned to `Third'.
+  \end{posterbox}
+
 \end{poster}
 \end{document}
 
