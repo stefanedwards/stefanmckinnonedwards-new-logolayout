@@ -11,6 +11,8 @@
 %% Copyright (C) 2007-2011 Brian Amberg
 %% Copyright (C) 2011      Reinhold Kainhofer <reinhold@kainhofer.com>
 %%
+%% 08. Januar 2013:
+%%     - Updating by Stefan McKinnon Hoj-Edwards <stefan.hoj-edwards@agrsci.dk>
 %% 24. October 2011: 
 %%     - The grid was broken when not explicitly specifying the column number, this has been fixed now.
 %%     - The perennial text border faded was still broken, it just faded to the other text border color, not to transparent. Now also fixed
@@ -111,11 +113,12 @@
 %%
 %%
 %% Licence: GPL
-\ProvidesClass{baposter}[2011/11/26 v2.0 baposter class]
+\ProvidesClass{baposter}[2013/01/08 v2.1 baposter class]
 \NeedsTeXFormat{LaTeX2e}[1995/06/01]
 \LoadClass{article}
 \typeout{baposter: Brian Amberg, 2007, 2008, 2009, 2010, 2011 | http://www.brian-amberg.de/uni/poster/}
 \typeout{baposter: Reinhold Kainhofer, 2011 | http://reinhold.kainhofer.com/}
+\typeout{baposter: Stefan McKinnon Hoj-Edwards, 2013 }
 
 %% Define lengths only once on inclusion, such that we can make multiple posters
 \newlength{\baposter@basepaperwidth}
@@ -306,6 +309,8 @@
 %% should do the actual work / setting for that particular optionvalue.
 
 \newcommand{\baposterPosterDrawBackground}[2]{} % Draw poster background
+\newcommand{\baposterPosterDrawLogos}[2]{}      % Draw logos in header
+\newcommand{\baposterPosterDrawTitle}[3]{}      % Draw title bar
 
 \newcommand{\baposterBoxGetShape}{}             % Returns path of text box shape
 \newcommand{\baposterBoxDrawBackground}[2]{}    % Draw bg of boxes
@@ -339,7 +344,7 @@
 %% choose-keys typically also assign a function
 \definecolor{baposter@silver}{cmyk}{0,0,0,0.7}
 \define@boolkey[ba]{poster}[baposter@]{grid}                 [false]       {}
-\define@boolkey[ba]{poster}[baposter@]{eyecatcher}           [true]        {}
+%\define@boolkey[ba]{poster}[baposter@]{eyecatcher}           [true]        {}  % Replaced by logosetup
 \define@cmdkey [ba]{poster}[baposter@]{headerheight}         [0.1\textheight]{}
 \define@cmdkey [ba]{poster}[baposter@]{columns}              [{}]          {}
 \define@cmdkey [ba]{poster}[baposter@]{colspacing}           [1em]         {}
@@ -358,6 +363,22 @@
       shadeLR, shadeTB, plain, none, or user). If user is used, you also
       have to define \background{...}.}
   \renewcommand{\baposterPosterDrawBackground}[2]{\baposter@background@none{##1}{##2}}
+}
+
+
+% logosetup, topbar, right or leftright. topbar is new, leftright corresponds to eyecatcher=true, right when false.
+\define@choicekey*+[ba]{poster}{logosetup}%
+    [\baposter@logosetup\baposter@logsetupnr]%
+    {topbar, right, leftright} [leftright] {%
+  \debug{Logo setup: \baposter@logosetup}
+  \renewcommand{\baposterPosterDrawLogos}[2]{
+     \csname baposter@logosetuplogo@\baposter@logosetup\endcsname{##1}{##2}}
+  \renewcommand{\baposterPosterDrawTitle}[3]{
+     \csname baposter@logosetup@\baposter@logosetup\endcsname{##1}{##2}{##3}}   
+}{
+  \PackageWarning{baposter}{Unknown setting for logosetup `\baposter@logosetup' (use
+      topbar, leftright or right).}
+  \renewcommand{\baposterPosterDrawTitle[3]{##1}{##2}{##3}}
 }
 
 
@@ -472,7 +493,8 @@
   % Debug grid
   grid=false,
   % Is there an eyecatcher image
-  eyecatcher=true,
+  %eyecatcher=true,
+  logosetup=leftright,
   columns={},
   % Colours
   bgColorOne=baposter@silver,
@@ -546,6 +568,70 @@
 \newcommand{\baposter@background@none}[2]{
   \debug{BAPOSTER: Using no background.}
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Functions for each setting of logosetup.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\baposter@logosetuplogob}[2]{
+    \setlength{\baposter@titleimage@left@width}{\wd\baposter@titleimage@left}%
+    \setbox\baposter@titleimage@right=\hbox{#2}%
+    \setlength{\baposter@titleimage@right@width}{\wd\baposter@titleimage@right}%
+    \setlength{\baposter@titleimage@textwidth}{\textwidth}%
+    \addtolength{\baposter@titleimage@textwidth}{-\baposter@titleimage@left@width}%
+    \addtolength{\baposter@titleimage@textwidth}{-\baposter@titleimage@right@width}%
+}
+\newcommand{\baposter@logosetuplogo@topbar}[2]{
+  %\setbox\baposter@titleimage@left=\hbox{}%
+}
+\newcommand{\baposter@logosetuplogo@leftright}[2]{
+  \setbox\baposter@titleimage@left=\hbox{#1}%
+  \baposter@logosetuplogob{#1}{#2}
+}
+\newcommand{\baposter@logosetuplogo@right}[2]{
+  %\setbox\baposter@titleimage@left=\hbox{}%
+  \baposter@logosetuplogob{#1}{#2}  
+}
+
+\newcommand{\baposter@logosetup@topbar}[3]{
+  \typeout{topbar}%
+  
+  \draw (image.east) node(title) [anchor=west] {{
+    \begin{minipage}{\textwidth} %\baposter@finalpaperwidth} %
+      \begin{center}%
+        #1 %
+              
+        \textbf{\Huge #2} %
+        
+        \Large{#3} %
+        
+      \end{center}
+    \end{minipage}
+  }};
+}
+\newcommand{\baposter@logosetup@leftright}[3]{
+  \typeout{leftright}%
+  
+  \draw (image.east) node(title)[anchor=west,text width=\baposter@titleimage@textwidth]{%
+  \begin{minipage}{\baposter@titleimage@textwidth}%
+    \begin{center}%
+      \textbf{\Huge #2}\\%
+      {\Large #3}\\%
+    \end{center}%
+  \end{minipage}
+  };%
+}
+
+\newcommand{\baposter@logosetup@right}[3]{
+  \typeout{right}%
+  
+  \draw (image.east) node(title)[anchor=west]{%
+  \begin{minipage}{\baposter@titleimage@textwidth}%
+    {\bfseries\Huge #2}\\%
+    {\Large #3}%\\%
+  \end{minipage}
+  };%
+}
+
 
 
 
@@ -1052,38 +1138,44 @@
       (0pt,\colheight) coordinate(north west) (\textwidth,\colheight) coordinate(north east)%
       (0pt,0pt) coordinate(south west)        (\textwidth,0pt) coordinate(south east);%
 %
-    \ifbaposter@eyecatcher% Has eye catcher
-      \debug{Eyecatcher found!}
-      \setbox\baposter@titleimage@left=\hbox{#2}%
-    \else% Has no eye catcher%
-      \setbox\baposter@titleimage@left=\hbox{}%
-    \fi%
-    \setlength{\baposter@titleimage@left@width}{\wd\baposter@titleimage@left}%
-    \setbox\baposter@titleimage@right=\hbox{#5}%
-    \setlength{\baposter@titleimage@right@width}{\wd\baposter@titleimage@right}%
-    \setlength{\baposter@titleimage@textwidth}{\textwidth}%
-    \addtolength{\baposter@titleimage@textwidth}{-\baposter@titleimage@left@width}%
-    \addtolength{\baposter@titleimage@textwidth}{-\baposter@titleimage@right@width}%
+    
+    
+    %\ifbaposter@eyecatcher% Has eye catcher
+    %  \debug{Eyecatcher found!}
+    %  \setbox\baposter@titleimage@left=\hbox{#2}%
+    %\else% Has no eye catcher%
+    %  \debug{No eyecatcher found.}
+    %  \setbox\baposter@titleimage@left=\hbox{}%
+    %\fi%
+    \setbox\baposter@titleimage@left=\hbox{}%
+    \setbox\baposter@titleimage@right=\hbox{}%
+    
+    \baposterPosterDrawLogos{#2}{#5}
+%     \setlength{\baposter@titleimage@left@width}{\wd\baposter@titleimage@left}%
+%     \setbox\baposter@titleimage@right=\hbox{#5}%
+%     \setlength{\baposter@titleimage@right@width}{\wd\baposter@titleimage@right}%
+%     \setlength{\baposter@titleimage@textwidth}{\textwidth}%
+%     \addtolength{\baposter@titleimage@textwidth}{-\baposter@titleimage@left@width}%
+%     \addtolength{\baposter@titleimage@textwidth}{-\baposter@titleimage@right@width}%
 
     \debug{#3}
-    %
-    %
-    %      % Draw Header%
+    %%% Draw Header
     \draw (north west) +(0em,1em+0.5\headerheight) node(image)[anchor=west]   { {\usebox{\baposter@titleimage@left }} };%
     \draw (north east) +(0em,1em+0.5\headerheight) node(logo) [anchor=east]   { {\usebox{\baposter@titleimage@right}} };%
     %
-    \ifbaposter@eyecatcher% Has eye catcher%
-      \draw (image.east) node(title)[anchor=west,text width=\baposter@titleimage@textwidth]{%
-        \begin{minipage}{\baposter@titleimage@textwidth}%
-          \begin{center}%
-          \textbf{\Huge #3}\\%
-          {\Large #4}%
-          \end{center}%
-        \end{minipage}
-      };%
-    \else% Has no eye catcher
-      \draw (image.east) node(title)[anchor=west]  { {\begin{minipage}{\baposter@titleimage@textwidth}{\bfseries\Huge #3}\\{\Large #4}\end{minipage}} };%
-    \fi
+%     \ifbaposter@eyecatcher% Has eye catcher%
+%       \draw (image.east) node(title)[anchor=west,text width=\baposter@titleimage@textwidth]{%
+%         \begin{minipage}{\baposter@titleimage@textwidth}%
+%           \begin{center}%
+%           \textbf{\Huge #3}\\%
+%           {\Large #4}%
+%           \end{center}%
+%         \end{minipage}
+%       };%
+%     \else% Has no eye catcher
+%       \draw (image.east) node(title)[anchor=west]  { {\begin{minipage}{\baposter@titleimage@textwidth}{\bfseries\Huge #3}\\{\Large #4}\end{minipage}} };%
+%     \fi
+    \baposterPosterDrawTitle{#2}{#3}{#4}
   }% END poster begin
 % The body
   {% BEGIN poster end
